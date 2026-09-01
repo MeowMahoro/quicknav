@@ -8,45 +8,66 @@ public class QuickNavConfig {
 	public boolean enableQuickNav = true;
 
 	/**
-	 * When inside a dungeon, disables any button whose command starts with {@code /warp} to
-	 * prevent accidentally warping out of the current dungeon instance.
+	 * How dungeon warp protection behaves. See {@link DungeonWarpMode}.
 	 */
-	public boolean disableWarpButtonsInDungeon = true;
+	public DungeonWarpMode dungeonWarpMode = DungeonWarpMode.AUTO;
 
-	public QuickNavItem button1 = new QuickNavItem(false, new ItemData(Items.DIAMOND_SWORD), "Your Skills", "/skills", "Skills");
+	/**
+	 * When protection is active (AUTO, or MANUAL with a protected button), also render the
+	 * protected buttons with a red tint while inside a dungeon to visually warn the player.
+	 * Optional.
+	 */
+	public boolean warpButtonsRedInDungeon = true;
 
-	public QuickNavItem button2 = new QuickNavItem(false, new ItemData(Items.PAINTING), "Collections", "/collection", "Collections");
+	/**
+	 * Buttons that require a second click to activate while inside a dungeon (used by
+	 * {@link DungeonWarpMode#MANUAL}). The index corresponds to the button number minus one
+	 * (0 = button 1, 13 = button 14).
+	 */
+	public boolean[] protectedButtons = new boolean[14];
+
+	/**
+	 * @param index the 0-based button index (0-13)
+	 * @return whether the button at that index is protected inside dungeons
+	 */
+	public boolean isProtectedButton(int index) {
+		return index >= 0 && index < protectedButtons.length && protectedButtons[index];
+	}
+
+	public QuickNavItem button1 = new QuickNavItem(new ItemData(Items.DIAMOND_SWORD), "Your Skills", "/skills", "Skills");
+
+	public QuickNavItem button2 = new QuickNavItem(new ItemData(Items.PAINTING), "Collections", "/collection", "Collections");
 
 	/* REGEX Explanation
 	 * "Pets" : simple match on letters
 	 * "(?: \\(\\d+/\\d+\\))?" : optional match on the non-capturing group for the page in the format " ($number/$number)"
 	 */
-	public QuickNavItem button3 = new QuickNavItem(false, new ItemData(Items.BONE), "(?:\\(\\d+/\\d+\\) )?Pets", "/pets", "Pets");
+	public QuickNavItem button3 = new QuickNavItem(new ItemData(Items.BONE), "(?:\\(\\d+/\\d+\\) )?Pets", "/pets", "Pets");
 
 	/* REGEX Explanation
 	 * "Wardrobe" : simple match on letters
 	 * " \\(\\d+/\\d+\\)" : match on any page with format ($number/$number), in case it is updated again in the future.
 	 */
-	public QuickNavItem button4 = new QuickNavItem(false, new ItemData(Items.LEATHER_CHESTPLATE, "[minecraft:dyed_color=8991416]"), "\\(\\d+/\\d+\\) Armor Sets", "/armor", "Armor Sets");
+	public QuickNavItem button4 = new QuickNavItem(new ItemData(Items.LEATHER_CHESTPLATE, "[minecraft:dyed_color=8991416]"), "\\(\\d+/\\d+\\) Armor Sets", "/armor", "Armor Sets");
 
-	public QuickNavItem button5 = new QuickNavItem(false, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;-2081424676,-57521078,-2073572414,158072763],name:\"\",properties:[{name:\"textures\",value:\"ewogICJ0aW1lc3RhbXAiIDogMTU5MTMxMDU4NTYwOSwKICAicHJvZmlsZUlkIiA6ICI0MWQzYWJjMmQ3NDk0MDBjOTA5MGQ1NDM0ZDAzODMxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNZWdha2xvb24iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODBhMDc3ZTI0OGQxNDI3NzJlYTgwMDg2NGY4YzU3OGI5ZDM2ODg1YjI5ZGFmODM2YjY0YTcwNjg4MmI2ZWMxMCIKICAgIH0KICB9Cn0=\"}]}]"), "Sack of Sacks", "/sacks", "Sacks");
+	public QuickNavItem button5 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;-2081424676,-57521078,-2073572414,158072763],name:\"\",properties:[{name:\"textures\",value:\"ewogICJ0aW1lc3RhbXAiIDogMTU5MTMxMDU4NTYwOSwKICAicHJvZmlsZUlkIiA6ICI0MWQzYWJjMmQ3NDk0MDBjOTA5MGQ1NDM0ZDAzODMxYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNZWdha2xvb24iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODBhMDc3ZTI0OGQxNDI3NzJlYTgwMDg2NGY4YzU3OGI5ZDM2ODg1YjI5ZGFmODM2YjY0YTcwNjg4MmI2ZWMxMCIKICAgIH0KICB9Cn0=\"}]}]"), "Sack of Sacks", "/sacks", "Sacks");
 
-	public QuickNavItem button6 = new QuickNavItem(false, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={name:\"5da6bec64bd942bc\",id:[I;1571208902,1272529596,-1566400349,-679283814],properties:[{name:\"textures\",value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYxYTkxOGMwYzQ5YmE4ZDA1M2U1MjJjYjkxYWJjNzQ2ODkzNjdiNGQ4YWEwNmJmYzFiYTkxNTQ3MzA5ODVmZiJ9fX0=\"}]}]"), "Accessory Bag(?: \\(\\d/\\d\\))?", "/accessories", "Accessories");
+	public QuickNavItem button6 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={name:\"5da6bec64bd942bc\",id:[I;1571208902,1272529596,-1566400349,-679283814],properties:[{name:\"textures\",value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYxYTkxOGMwYzQ5YmE4ZDA1M2U1MjJjYjkxYWJjNzQ2ODkzNjdiNGQ4YWEwNmJmYzFiYTkxNTQ3MzA5ODVmZiJ9fX0=\"}]}]"), "Accessory Bag(?: \\(\\d/\\d\\))?", "/accessories", "Accessories");
 
 	/* REGEX Explanation
 	 * "(?:Rift )?" : optional match on the non-capturing group "Rift "
 	 * "Storage" : simple match on letters
 	 * "(?: \\(\\d/\\d\\))?" : optional match on the non-capturing group " (1/2)" or " (2/2)"
 	 */
-	public QuickNavItem button7 = new QuickNavItem(false, new ItemData(Items.ENDER_CHEST), "(?:Rift )?Storage(?: \\(\\d/\\d\\))?", "/storage", "Storage");
+	public QuickNavItem button7 = new QuickNavItem(new ItemData(Items.ENDER_CHEST), "(?:Rift )?Storage(?: \\(\\d/\\d\\))?", "/storage", "Storage");
 
-	public QuickNavItem button8 = new QuickNavItem(true, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={name:\"421a8ef40eff47f4\",id:[I;1109036788,251611124,-2126904485,-130621758],properties:[{name:\"textures\",value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzljODg4MWU0MjkxNWE5ZDI5YmI2MWExNmZiMjZkMDU5OTEzMjA0ZDI2NWRmNWI0MzliM2Q3OTJhY2Q1NiJ9fX0=\"}]}]"), "/is", "Home");
+	public QuickNavItem button8 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={name:\"421a8ef40eff47f4\",id:[I;1109036788,251611124,-2126904485,-130621758],properties:[{name:\"textures\",value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzljODg4MWU0MjkxNWE5ZDI5YmI2MWExNmZiMjZkMDU5OTEzMjA0ZDI2NWRmNWI0MzliM2Q3OTJhY2Q1NiJ9fX0=\"}]}]"), "/is", "Home");
 
-	public QuickNavItem button9 = new QuickNavItem(true, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={name:\"e30e30d02878417c\",id:[I;-485609264,678969724,-1929747597,-718202427],properties:[{name:\"textures\",value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjQ4ODBkMmMxZTdiODZlODc1MjJlMjA4ODI2NTZmNDViYWZkNDJmOTQ5MzJiMmM1ZTBkNmVjYWE0OTBjYjRjIn19fQ==\"}]}]"), "/warp garden", "Garden");
+	public QuickNavItem button9 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={name:\"e30e30d02878417c\",id:[I;-485609264,678969724,-1929747597,-718202427],properties:[{name:\"textures\",value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjQ4ODBkMmMxZTdiODZlODc1MjJlMjA4ODI2NTZmNDViYWZkNDJmOTQ5MzJiMmM1ZTBkNmVjYWE0OTBjYjRjIn19fQ==\"}]}]"), "/warp garden", "Garden");
 
-	public QuickNavItem button10 = new QuickNavItem(true, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;-300151517,-631415889,-1193921967,-1821784279],name:\"\",properties:[{name:\"textures\",value:\"e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDdjYzY2ODc0MjNkMDU3MGQ1NTZhYzUzZTA2NzZjYjU2M2JiZGQ5NzE3Y2Q4MjY5YmRlYmVkNmY2ZDRlN2JmOCJ9fX0=\"}]}]"), "/hub", "Skyblock Hub");
+	public QuickNavItem button10 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;-300151517,-631415889,-1193921967,-1821784279],name:\"\",properties:[{name:\"textures\",value:\"e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDdjYzY2ODc0MjNkMDU3MGQ1NTZhYzUzZTA2NzZjYjU2M2JiZGQ5NzE3Y2Q4MjY5YmRlYmVkNmY2ZDRlN2JmOCJ9fX0=\"}]}]"), "/hub", "Skyblock Hub");
 
-	public QuickNavItem button11 = new QuickNavItem(true, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;1605800870,415127827,-1236127084,15358548],name:\"\",properties:[{name:\"textures\",value:\"e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzg5MWQ1YjI3M2ZmMGJjNTBjOTYwYjJjZDg2ZWVmMWM0MGExYjk0MDMyYWU3MWU3NTQ3NWE1NjhhODI1NzQyMSJ9fX0=\"}]}]"), "/warp dungeon_hub", "Dungeons Hub");
+	public QuickNavItem button11 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;1605800870,415127827,-1236127084,15358548],name:\"\",properties:[{name:\"textures\",value:\"e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzg5MWQ1YjI3M2ZmMGJjNTBjOTYwYjJjZDg2ZWVmMWM0MGExYjk0MDMyYWU3MWU3NTQ3NWE1NjhhODI1NzQyMSJ9fX0=\"}]}]"), "/warp dungeon_hub", "Dungeons Hub");
 
 	/* REGEX Explanation
 	 * "Auctions Browser" : simple exact match
@@ -59,11 +80,11 @@ public class QuickNavConfig {
 	 * "Auctions:.*" : match "Auctions:" followed by anything (`/ahs <query>` results)
 	 * "(?: ... )" : combine all valid titles
 	 */
-	public QuickNavItem button12 = new QuickNavItem(false, new ItemData(Items.GOLD_BLOCK), "^(?:Auctions Browser|Co-op Auction House|Auction House|Manage Auctions|Your Bids|BIN Auction View|Auction View|Auctions:.*)$", "/ah", "Auction House");
+	public QuickNavItem button12 = new QuickNavItem(new ItemData(Items.GOLD_BLOCK), "^(?:Auctions Browser|Co-op Auction House|Auction House|Manage Auctions|Your Bids|BIN Auction View|Auction View|Auctions:.*)$", "/ah", "Auction House");
 
-	public QuickNavItem button13 = new QuickNavItem(false, new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;-562285948,532499670,-1705302742,775653035],name:\"\",properties:[{name:\"textures\",value:\"e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmZlMmRjZGE0MWVjM2FmZjhhZjUwZjI3MmVjMmUwNmE4ZjUwOWUwZjgwN2YyMzU1YTFmNWEzM2MxYjY2ZTliNCJ9fX0=\"}]}]"), "(?:Co-op )?Bazaar .*", "/bz", "Bazaar");
+	public QuickNavItem button13 = new QuickNavItem(new ItemData(Items.PLAYER_HEAD, "[minecraft:profile={id:[I;-562285948,532499670,-1705302742,775653035],name:\"\",properties:[{name:\"textures\",value:\"e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmZlMmRjZGE0MWVjM2FmZjhhZjUwZjI3MmVjMmUwNmE4ZjUwOWUwZjgwN2YyMzU1YTFmNWEzM2MxYjY2ZTliNCJ9fX0=\"}]}]"), "(?:Co-op )?Bazaar .*", "/bz", "Bazaar");
 
-	public QuickNavItem button14 = new QuickNavItem(false, new ItemData(Items.CRAFTING_TABLE), "Craft Item", "/craft", "Crafting Table");
+	public QuickNavItem button14 = new QuickNavItem(new ItemData(Items.CRAFTING_TABLE), "Craft Item", "/craft", "Crafting Table");
 
 	/**
 	 * Gets the {@link QuickNavItem} for the given button index (0 based).
@@ -98,12 +119,11 @@ public class QuickNavConfig {
 		@SuppressWarnings("unused")
 		private QuickNavItem() {}
 
-		public QuickNavItem(boolean doubleClick, ItemData itemData, String clickEvent, String tooltip) {
-			this(doubleClick, itemData, "none", clickEvent, tooltip);
+		public QuickNavItem(ItemData itemData, String clickEvent, String tooltip) {
+			this(itemData, "none", clickEvent, tooltip);
 		}
 
-		public QuickNavItem(boolean doubleClick, ItemData itemData, @Language("RegExp") String uiTitle, String clickEvent, String tooltip) {
-			this.doubleClick = doubleClick;
+		public QuickNavItem(ItemData itemData, @Language("RegExp") String uiTitle, String clickEvent, String tooltip) {
 			this.itemData = itemData;
 			this.uiTitle = uiTitle;
 			this.clickEvent = clickEvent;
@@ -111,14 +131,6 @@ public class QuickNavConfig {
 		}
 
 		public boolean render = true;
-
-		public boolean doubleClick = false;
-
-		/**
-		 * When inside a dungeon, prevents this button from being clicked. Used to manually
-		 * choose which buttons are unavailable while in a dungeon.
-		 */
-		public boolean disableInDungeon = false;
 
 		public ItemData itemData;
 

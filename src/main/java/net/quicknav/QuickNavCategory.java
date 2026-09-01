@@ -4,6 +4,8 @@ import net.azureaaron.dandelion.api.ButtonOption;
 import net.azureaaron.dandelion.api.ConfigCategory;
 import net.azureaaron.dandelion.api.Option;
 import net.azureaaron.dandelion.api.OptionGroup;
+import net.azureaaron.dandelion.api.OptionListener;
+import net.azureaaron.dandelion.api.controllers.EnumController;
 import net.azureaaron.dandelion.api.controllers.IntegerController;
 import net.azureaaron.dandelion.api.controllers.ItemController;
 import net.azureaaron.dandelion.api.controllers.StringController;
@@ -13,6 +15,7 @@ import net.minecraft.world.item.Item;
 
 import net.quicknav.datafixer.ItemStackComponentizationFixer;
 import net.quicknav.gui.ItemSelectionPopup;
+import net.quicknav.scheduler.Scheduler;
 
 public class QuickNavCategory {
 	public static ConfigCategory create(QuickNavConfig defaults, QuickNavConfig config) {
@@ -30,15 +33,39 @@ public class QuickNavCategory {
 						.controller(QuickNavConfigUtils.createBooleanController())
 						.build())
 
-				//Dungeon mis-click protection
+				//Dungeon warp protection mode
+				.option(Option.<DungeonWarpMode>createBuilder()
+						.name(Component.translatable("quicknav.config.quickNav.dungeonWarpMode"))
+						.description(Component.translatable("quicknav.config.quickNav.dungeonWarpMode.@Tooltip"))
+						.binding(defaults.dungeonWarpMode,
+								() -> config.dungeonWarpMode,
+								newValue -> config.dungeonWarpMode = newValue)
+						.controller(EnumController.<DungeonWarpMode>createBuilder()
+								.dropdown(true)
+								.formatter(mode -> switch (mode) {
+									case AUTO -> Component.translatable("quicknav.config.quickNav.dungeonWarpMode.auto");
+									case MANUAL -> Component.translatable("quicknav.config.quickNav.dungeonWarpMode.manual");
+									case DISABLED -> Component.translatable("quicknav.config.quickNav.dungeonWarpMode.disabled");
+								})
+								.build())
+						.listener((option, type) -> {
+							if (type == OptionListener.UpdateType.VALUE_CHANGE) {
+								// Rebuild the screen so the manual button selection group appears/disappears.
+								Scheduler.queueOpenScreen(QuickNavConfigManager.createGUI(null));
+							}
+						})
+						.build())
 				.option(Option.<Boolean>createBuilder()
-						.name(Component.translatable("quicknav.config.quickNav.disableWarpButtonsInDungeon"))
-						.description(Component.translatable("quicknav.config.quickNav.disableWarpButtonsInDungeon.@Tooltip"))
-						.binding(defaults.disableWarpButtonsInDungeon,
-								() -> config.disableWarpButtonsInDungeon,
-								newValue -> config.disableWarpButtonsInDungeon = newValue)
+						.name(Component.translatable("quicknav.config.quickNav.warpButtonsRedInDungeon"))
+						.description(Component.translatable("quicknav.config.quickNav.warpButtonsRedInDungeon.@Tooltip"))
+						.binding(defaults.warpButtonsRedInDungeon,
+								() -> config.warpButtonsRedInDungeon,
+								newValue -> config.warpButtonsRedInDungeon = newValue)
 						.controller(QuickNavConfigUtils.createBooleanController())
 						.build())
+
+				//Manual button selection (only shown while the MANUAL mode is active)
+				.groupIf(config.dungeonWarpMode == DungeonWarpMode.MANUAL, protectedButtonsGroup(defaults, config))
 
 				//Buttons
 				.group(quickNavButton(defaults.button1, config.button1, 1))
@@ -67,21 +94,6 @@ public class QuickNavCategory {
 						.binding(defaultButton.render,
 								() -> button.render,
 								newValue -> button.render = newValue)
-						.controller(QuickNavConfigUtils.createBooleanController())
-						.build())
-				.option(Option.<Boolean>createBuilder()
-						.name(Component.translatable("quicknav.config.quickNav.button.doubleClick"))
-						.binding(defaultButton.doubleClick,
-								() -> button.doubleClick,
-								newValue -> button.doubleClick = newValue)
-						.controller(QuickNavConfigUtils.createBooleanController())
-						.build())
-				.option(Option.<Boolean>createBuilder()
-						.name(Component.translatable("quicknav.config.quickNav.button.disableInDungeon"))
-						.description(Component.translatable("quicknav.config.quickNav.button.disableInDungeon.@Tooltip"))
-						.binding(defaultButton.disableInDungeon,
-								() -> button.disableInDungeon,
-								newValue -> button.disableInDungeon = newValue)
 						.controller(QuickNavConfigUtils.createBooleanController())
 						.build())
 				.optionIf(Minecraft.getInstance().level != null, ButtonOption.createBuilder()
@@ -139,5 +151,23 @@ public class QuickNavCategory {
 						.controller(StringController.createBuilder().build())
 						.build())
 				.build();
+	}
+
+	private static OptionGroup protectedButtonsGroup(QuickNavConfig defaults, QuickNavConfig config) {
+		OptionGroup.Builder builder = OptionGroup.createBuilder()
+				.name(Component.translatable("quicknav.config.quickNav.manualSelection"))
+				.description(Component.translatable("quicknav.config.quickNav.manualSelection.@Tooltip"))
+				.collapsed(true);
+		for (int i = 0; i < 14; i++) {
+			int buttonIndex = i;
+			builder.option(Option.<Boolean>createBuilder()
+					.name(Component.translatable("quicknav.config.quickNav.button", i + 1))
+					.binding(defaults.isProtectedButton(buttonIndex),
+							() -> config.isProtectedButton(buttonIndex),
+							newValue -> config.protectedButtons[buttonIndex] = newValue)
+					.controller(QuickNavConfigUtils.createBooleanController())
+					.build());
+		}
+		return builder.build();
 	}
 }

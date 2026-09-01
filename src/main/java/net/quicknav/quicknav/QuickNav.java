@@ -60,9 +60,6 @@ public class QuickNav {
 			}
 		}
 
-		if (buttonInfo.doubleClick) {
-			return new QuickNavConfirmationButton(id, uiTitleMatches, buttonInfo.clickEvent, stack, buttonInfo.tooltip);
-		}
 		return new QuickNavButton(id, uiTitleMatches, buttonInfo.clickEvent, stack, buttonInfo.tooltip);
 	}
 }

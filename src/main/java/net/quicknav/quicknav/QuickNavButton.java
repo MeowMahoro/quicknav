@@ -45,12 +45,13 @@ import org.jspecify.annotations.Nullable;
 @Environment(value = EnvType.CLIENT)
 public class QuickNavButton extends AbstractWidget {
 	private static final long TOGGLE_DURATION = 1000;
+	private static final long DOUBLE_CLICK_TIME = 1000;
 	@SuppressWarnings("unchecked")
 	private static final @Nullable FallbackedTexture<Identifier>[] TAB_TEXTURES = new FallbackedTexture[14];
 	@SuppressWarnings("unchecked")
 	private static final @Nullable FallbackedTexture<Identifier>[] TAB_TEXTURES_SELECTED = new FallbackedTexture[14];
 
-	private static final Tooltip DUNGEON_DISABLED_TOOLTIP = Tooltip.create(Component.translatable("quicknav.quickNav.disabledInDungeon"));
+	private static final Tooltip CONFIRM_TOOLTIP = Tooltip.create(Component.translatable("quicknav.quickNav.confirm"));
 
 	private final int index;
 	private final boolean toggled;
@@ -60,7 +61,8 @@ public class QuickNavButton extends AbstractWidget {
 
 	private boolean temporaryToggled = false;
 	private long toggleTime;
-	private boolean showingDungeonDisabledTooltip = false;
+	private boolean showingConfirmTooltip = false;
+	private long lastClicked = 0;
 
 	// Stores whether the button is currently rendering in front of the main inventory background.
 	private boolean renderInFront;
@@ -144,17 +146,18 @@ public class QuickNavButton extends AbstractWidget {
 	}
 
 	/**
-	 * Handles click events. If the button is not currently toggled,
-	 * it sets the toggled state to true and sends a message with the command after cooldown.
+	 * Handles click events. If the button requires a double click (see
+	 * {@link #requiresDoubleClick()}) and this is the first click, only the click time is
+	 * recorded and the command is not executed. Otherwise, if the button is not currently
+	 * toggled, it sets the toggled state to true and sends a message with the command after
+	 * cooldown.
 	 */
 	@Override
 	public void onClick(MouseButtonEvent click, boolean doubled) {
-		if (isDungeonDisabled()) {
-			// Prevent accidentally warping out of the current dungeon instance.
-			Minecraft client = Minecraft.getInstance();
-			client.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BASS, 1.0f));
-			if (client.player != null) {
-				client.player.sendSystemMessage(QuickNavConstants.PREFIX.get().append(Component.translatable("quicknav.quickNav.disabledInDungeon").withStyle(ChatFormatting.RED)));
+		if (requiresDoubleClick() && !isDoubleClick()) {
+			lastClicked = System.currentTimeMillis();
+			if (Minecraft.getInstance().player != null) {
+				Minecraft.getInstance().player.sendSystemMessage(QuickNavConstants.PREFIX.get().append(Component.translatable("quicknav.quickNav.confirmChat")));
 			}
 			return;
 		}
@@ -171,32 +174,65 @@ public class QuickNavButton extends AbstractWidget {
 	}
 
 	/**
-	 * Suppresses the normal click sound for buttons disabled inside dungeons, since the warning
-	 * sound is already played in {@link #onClick(MouseButtonEvent, boolean)}.
+	 * Plays a confirmation chime on the first click of a button that requires a double click,
+	 * so the player knows they have to click again to activate it.
 	 */
 	@Override
 	public void playDownSound(SoundManager soundManager) {
-		if (isDungeonDisabled()) return;
+		if (requiresDoubleClick() && !isDoubleClick()) {
+			soundManager.play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_CHIME, 1.0f));
+			return;
+		}
 		super.playDownSound(soundManager);
 	}
 
 	/**
-	 * Checks whether this button should be disabled while the player is inside a dungeon.
-	 * <p>
-	 * A button is disabled if the player is in a dungeon and either the "disable warp buttons"
-	 * mode is enabled (the button's command starts with {@code /warp}) or the button has been
-	 * manually set to be disabled in dungeons in the config.
+	 * Checks whether this button runs a warp command ({@code /warp ...}). Only these commands
+	 * are protected by the automatic dungeon warp protection; other commands such as
+	 * {@code /hub} are always executed with a single click.
 	 *
-	 * @return whether this button is currently disabled inside a dungeon
+	 * @return whether the button's command is a warp command
 	 */
-	public boolean isDungeonDisabled() {
+	public boolean isWarpCommand() {
+		String cmd = command == null ? "" : command.trim().toLowerCase(Locale.ROOT);
+		return cmd.equals("/warp") || cmd.startsWith("/warp ");
+	}
+
+	/**
+	 * Checks whether this button currently requires a double click to activate.
+	 * <p>
+	 * A button requires a double click while the player is inside a dungeon, depending on the
+	 * configured {@link DungeonWarpMode}:
+	 * <ul>
+	 *   <li>{@link DungeonWarpMode#AUTO}: every {@code /warp} button is protected.</li>
+	 *   <li>{@link DungeonWarpMode#MANUAL}: only the buttons selected by the player are protected.</li>
+	 *   <li>{@link DungeonWarpMode#DISABLED}: no button is ever protected.</li>
+	 * </ul>
+	 * Outside dungeons every button is unrestricted.
+	 *
+	 * @return whether this button needs a double click in the current context
+	 */
+	protected boolean requiresDoubleClick() {
 		QuickNavConfig config = QuickNavConfigManager.get();
 		if (!QuickNavUtils.isInDungeon()) return false;
+		return switch (config.dungeonWarpMode) {
+			case AUTO -> isWarpCommand();
+			case MANUAL -> config.isProtectedButton(index);
+			case DISABLED -> false;
+		};
+	}
 
-		String cmd = command == null ? "" : command.trim().toLowerCase(Locale.ROOT);
-		if (config.disableWarpButtonsInDungeon && (cmd.equals("/warp") || cmd.startsWith("/warp "))) return true;
+	/**
+	 * @return whether a warp-protected button should be rendered red inside a dungeon
+	 */
+	private boolean shouldRenderRedInDungeon() {
+		QuickNavConfig config = QuickNavConfigManager.get();
+		return config.warpButtonsRedInDungeon && requiresDoubleClick();
+	}
 
-		return config.getButton(index).disableInDungeon;
+	private boolean isDoubleClick() {
+		long now = System.currentTimeMillis();
+		return now - lastClicked < DOUBLE_CLICK_TIME;
 	}
 
 	/**
@@ -232,14 +268,13 @@ public class QuickNavButton extends AbstractWidget {
 			alpha = Math.min(alpha + 10, 255);
 		}
 
-		boolean dungeonDisabled = isDungeonDisabled();
-		updateDungeonDisabledTooltip(dungeonDisabled);
+		updateConfirmTooltip();
 
 		Identifier tabTexture = getTexture();
 
 		// Render the button texture, always with full alpha if it's not rendering in front
-		if (dungeonDisabled) {
-			// Render with a red tint to signal that the button is disabled inside dungeons
+		if (shouldRenderRedInDungeon()) {
+			// Render with a red tint to signal that the button is warp-protected inside dungeons
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, tabTexture, this.getX(), this.getY(), this.width, this.height, ARGB.color(alpha, 0xFF5555));
 		} else {
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, tabTexture, this.getX(), this.getY(), this.width, this.height, renderInFront ? ARGB.color(alpha, -1) : -1);
@@ -252,12 +287,21 @@ public class QuickNavButton extends AbstractWidget {
 	}
 
 	/**
-	 * Switches the tooltip to the dungeon disabled warning while the button is disabled inside a dungeon.
+	 * Switches the tooltip to the confirmation hint while the button requires a double click,
+	 * and back to the normal tooltip once it no longer does.
 	 */
-	private void updateDungeonDisabledTooltip(boolean dungeonDisabled) {
-		if (dungeonDisabled == showingDungeonDisabledTooltip) return;
-		showingDungeonDisabledTooltip = dungeonDisabled;
-		setTooltip(dungeonDisabled ? DUNGEON_DISABLED_TOOLTIP : tooltip);
+	private void updateConfirmTooltip() {
+		if (toggled()) return;
+		if (!requiresDoubleClick()) {
+			if (showingConfirmTooltip) {
+				showingConfirmTooltip = false;
+				setTooltip(tooltip);
+			}
+			return;
+		}
+		if (isDoubleClick() == showingConfirmTooltip) return;
+		showingConfirmTooltip = !showingConfirmTooltip;
+		setTooltip(showingConfirmTooltip ? CONFIRM_TOOLTIP : tooltip);
 	}
 
 	private Identifier getTexture() {

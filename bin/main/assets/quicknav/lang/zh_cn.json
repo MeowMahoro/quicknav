@@ -6,7 +6,6 @@
   "quicknav.config.quickNav.button.chooseSkyblockItem": "选择SkyBlock物品",
   "quicknav.config.quickNav.button.chooseSkyblockItem.@Tooltip": "选择一个SkyBlock图标或物品来填充此按钮。",
   "quicknav.config.quickNav.button.clickEvent": "点击事件",
-  "quicknav.config.quickNav.button.doubleClick": "需要双击",
   "quicknav.config.quickNav.button.item.components": "物品组件",
   "quicknav.config.quickNav.button.item.components.@Tooltip": "用方括号括起来的项目组件字符串，其格式与/give命令相同。\n\n例如：[minecraft:enchantment_glint_override=true]",
   "quicknav.config.quickNav.button.item.count": "物品数量",
@@ -15,9 +14,19 @@
   "quicknav.config.quickNav.button.tooltip": "工具提示",
   "quicknav.config.quickNav.button.tooltip.@Tooltip": "将鼠标悬停在按钮上时显示工具提示。\n\n可以使用文本json格式。\n若不放置任何内容会使工具提示无法呈现。",
   "quicknav.config.quickNav.button.uiTitle": "UI标题",
+  "quicknav.config.quickNav.dungeonWarpMode": "地牢传送保护",
+  "quicknav.config.quickNav.dungeonWarpMode.@Tooltip": "选择在地牢内如何保护传送命令。\n\n自动：所有/warp按钮都需要双击才能激活。\n手动：仅你选择的按钮需要双击。\n关闭：地牢内外行为一致。",
+  "quicknav.config.quickNav.dungeonWarpMode.auto": "自动",
+  "quicknav.config.quickNav.dungeonWarpMode.manual": "手动",
+  "quicknav.config.quickNav.dungeonWarpMode.disabled": "关闭",
   "quicknav.config.quickNav.enableQuickNav": "启用快速导航",
   "quicknav.config.quickNav.enableQuickNav.@Tooltip": "添加14个可自定义的物品栏按钮以便通过点击快速执行命令。",
+  "quicknav.config.quickNav.manualSelection": "受保护按钮（手动）",
+  "quicknav.config.quickNav.manualSelection.@Tooltip": "选择在地牢内需要双击才能激活的按钮。仅在手动模式下生效。",
+  "quicknav.config.quickNav.warpButtonsRedInDungeon": "地牢内传送按钮变红",
+  "quicknav.config.quickNav.warpButtonsRedInDungeon.@Tooltip": "启用保护后，将地牢内受保护的按钮渲染为红色，以作视觉提醒。",
 
   "quicknav.open": "打开",
-  "quicknav.quickNav.confirm": "再次点击以确认。"
+  "quicknav.quickNav.confirm": "再次点击以确认。",
+  "quicknav.quickNav.confirmChat": "双击传送！"
 }
