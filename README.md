@@ -1,59 +1,67 @@
 # Quick Nav
 
-独立的 **快速导航（Quick Navigation）** Fabric 模组 —— 从 [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) 拆分而来，可单独装载于 Minecraft **26.2** 的 Fabric 环境，不依赖 Skyblocker 本体。
+[English](README.md) | [中文](README.zh-CN.md)
 
-在 Hypixel SkyBlock 的容器菜单（如快捷栏、背包等）顶部/底部渲染 14 个可自定义的导航标签按钮，点击即可执行命令（`/skills`、`/ah`、`/hub` 等）。
+![Build](https://github.com/fusuqwq/quicknav/actions/workflows/build.yml/badge.svg)
 
-## 功能
+A standalone **Quick Navigation** Fabric mod — ported from [Skyblocker](https://github.com/SkyblockerMod/Skyblocker), installable on its own in a Minecraft **26.2** Fabric environment without Skyblocker.
 
-- 与 Skyblocker 原版 Quick Navigation 完全一致的行为：
-  - 14 个可开关、可双击确认的导航按钮
-  - 每个按钮可自定义：物品图标（`Item`/`Count`/`Components`）、正则 UI 标题匹配、点击命令、Tooltip（支持文本 JSON 格式）
-  - "选择 SkyBlock 物品" 弹出窗（内置常用 SkyBlock 图标；任意其他物品可通过 Item 与 Item Components 选项手动指定）
-  - 选中标签置顶渲染、淡入动画、确认工具提示等原版细节
-- 独立的配置系统（`config/quicknav.json`），通过 `/quicknav config` 或 Mod Menu 打开配置界面
-- 独立命名空间（`quicknav`）、独立混入与 access widener，可与 Skyblocker 同时安装
+Renders 14 customizable navigation tab buttons at the top/bottom of Hypixel SkyBlock container menus (e.g. hotbar, inventory). Clicking a button executes a command (`/skills`, `/ah`, `/hub`, etc.).
 
-## 构建
+## Features
 
-需要 JDK 25+。
+- Behavior fully identical to Skyblocker's original Quick Navigation:
+  - 14 toggleable navigation buttons with double-click confirmation
+  - Each button is customizable: item icon (`Item`/`Count`/`Components`), regex UI title matching, click command, tooltip (text JSON format)
+  - "Select SkyBlock Item" popup (built-in list of common SkyBlock icons; any other item can be specified manually via the Item and Item Components options)
+  - Original details such as selected-tab pinning, fade-in animation, and confirmation tooltips
+- Independent configuration system (`config/quicknav.json`), opened via `/quicknav config` or Mod Menu
+- Independent namespace (`quicknav`), mixins, and access widener — can be installed alongside Skyblocker
+
+## Building
+
+JDK 25+ is required.
 
 ```powershell
 .\gradlew.bat build
 ```
 
-产物位于 `build/libs/quicknav-<version>.jar`。
+The artifact is at `build/libs/quicknav-<version>.jar`.
 
-## 安装
+You can also use GitHub Actions for automatic builds: every push to the `master` branch triggers a build, and the artifacts can be downloaded from the [Actions](https://github.com/fusuqwq/quicknav/actions) page.
 
-将以下内容放入 `.minecraft/mods/`：
+## Installation
 
-1. **quicknav.jar**（本模组，已内置 Dandelion 配置框架）
-2. **fabric-api**（[Modrinth](https://modrinth.com/mod/fabric-api)）
-3. **yet-another-config-lib**（YACL，Dandelion 的配置界面后端，[Modrinth](https://modrinth.com/mod/yacl)）
-4. **fabric-language-kotlin**（Dandelion 的运行时依赖，[Modrinth](https://modrinth.com/mod/fabric-language-kotlin)）
+Place the following into `.minecraft/mods/`:
 
-> Dandelion 只发布在 skyblocker 的私有 Maven 仓库（`maven.azureaaron.net`），公开渠道无法下载，因此通过 jar-in-jar 内置在本模组中，无需单独安装。
-> 与 Skyblocker 同时安装时也不会冲突：Fabric Loader 对版本相同的重复嵌套 jar 只会取其一。
-> 注意：不要同时安装手动下载的 dandelion.jar，避免重复。
+1. **quicknav.jar** (this mod, with the Dandelion config framework bundled)
+2. **fabric-api** ([Modrinth](https://modrinth.com/mod/fabric-api))
+3. **yet-another-config-lib** (YACL, Dandelion's config screen backend, [Modrinth](https://modrinth.com/mod/yacl))
+4. **fabric-language-kotlin** (Dandelion's runtime dependency, [Modrinth](https://modrinth.com/mod/fabric-language-kotlin))
 
-## 使用
+> Dandelion is only distributed on Skyblocker's private Maven repository (`maven.azureaaron.net`) and has no public release, so it is bundled into this mod via jar-in-jar. No separate installation is needed.
+> It does not conflict with Skyblocker when both are installed: Fabric Loader only loads one copy of identical nested jars.
+> Note: do not also install a manually downloaded dandelion.jar to avoid duplicates.
 
-- 在 SkyBlock 服务器上打开任意容器菜单即可看到导航标签。
-- 配置：聊天栏输入 `/quicknav config`（或 `/quicknav options`），或通过 Mod Menu 的配置按钮进入。
+## Usage
 
-## 与 Skyblocker 同时安装
+- Open any container menu on a SkyBlock server to see the navigation tabs.
+- Configuration: type `/quicknav config` (or `/quicknav options`) in chat, or use the Mod Menu config button.
 
-本模组使用独立的命名空间、混入与配置，可与 Skyblocker 共存。注意两者都会渲染 Quick Navigation 按钮，
-如不希望按钮重复显示，请在其中一个模组中关闭该功能（Skyblocker：`/skyblocker config` → Quick Navigation → Enable；
-本模组：`/quicknav config` → Quick Navigation → Enable Quick Navigation）。
+## Installing alongside Skyblocker
 
-## 与 Skyblocker 的差异
+This mod uses an independent namespace, mixins, and config, so it can coexist with Skyblocker. Note that both will render Quick Navigation buttons — to avoid duplicate buttons, disable the feature in one of them (Skyblocker: `/skyblocker config` → Quick Navigation → Enable; this mod: `/quicknav config` → Quick Navigation → Enable Quick Navigation).
 
-- 仅包含 Quick Navigation 相关功能，不包含 Skyblocker 的其他模块。
-- "选择 SkyBlock 物品" 弹窗使用内置的常用图标列表，而非 Skyblocker 的完整 NEU 物品仓库；如需任意物品，可直接在 Item 选项中输入物品 ID、在 Item Components 中填入组件字符串。
-- 命名空间、翻译键、配置文件名均为 `quicknav`，与 Skyblocker 互不干扰。
+## Differences from Skyblocker
 
-## 协议
+- Contains only the Quick Navigation functionality, not Skyblocker's other modules.
+- The "Select SkyBlock Item" popup uses a built-in list of common icons rather than Skyblocker's full NEU item repository; for arbitrary items, enter the item ID in the Item option and the component string in Item Components.
+- The namespace, translation keys, and config file name are all `quicknav`, independent of Skyblocker.
 
-[LGPL-3.0-or-later](./LICENSE)，与 Skyblocker 相同。
+## License
+
+[LGPL-3.0-or-later](./LICENSE), the same as Skyblocker.
+
+## 中文文档
+
+[简体中文 README](README.zh-CN.md)
