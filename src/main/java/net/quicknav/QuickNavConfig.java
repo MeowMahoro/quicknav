@@ -7,6 +7,12 @@ import org.intellij.lang.annotations.Language;
 public class QuickNavConfig {
 	public boolean enableQuickNav = true;
 
+	/**
+	 * When inside a dungeon, disables any button whose command starts with {@code /warp} to
+	 * prevent accidentally warping out of the current dungeon instance.
+	 */
+	public boolean disableWarpButtonsInDungeon = true;
+
 	public QuickNavItem button1 = new QuickNavItem(false, new ItemData(Items.DIAMOND_SWORD), "Your Skills", "/skills", "Skills");
 
 	public QuickNavItem button2 = new QuickNavItem(false, new ItemData(Items.PAINTING), "Collections", "/collection", "Collections");
@@ -59,6 +65,32 @@ public class QuickNavConfig {
 
 	public QuickNavItem button14 = new QuickNavItem(false, new ItemData(Items.CRAFTING_TABLE), "Craft Item", "/craft", "Crafting Table");
 
+	/**
+	 * Gets the {@link QuickNavItem} for the given button index (0 based).
+	 *
+	 * @param index the 0-based index of the button (0-13)
+	 * @return the corresponding {@link QuickNavItem}
+	 */
+	public QuickNavItem getButton(int index) {
+		return switch (index) {
+			case 0 -> button1;
+			case 1 -> button2;
+			case 2 -> button3;
+			case 3 -> button4;
+			case 4 -> button5;
+			case 5 -> button6;
+			case 6 -> button7;
+			case 7 -> button8;
+			case 8 -> button9;
+			case 9 -> button10;
+			case 10 -> button11;
+			case 11 -> button12;
+			case 12 -> button13;
+			case 13 -> button14;
+			default -> throw new IllegalArgumentException("Invalid Quick Nav button index: " + index);
+		};
+	}
+
 	public static class QuickNavItem {
 		/**
 		 * Default constructor or else gson skips initialization.
@@ -81,6 +113,12 @@ public class QuickNavConfig {
 		public boolean render = true;
 
 		public boolean doubleClick = false;
+
+		/**
+		 * When inside a dungeon, prevents this button from being clicked. Used to manually
+		 * choose which buttons are unavailable while in a dungeon.
+		 */
+		public boolean disableInDungeon = false;
 
 		public ItemData itemData;
 

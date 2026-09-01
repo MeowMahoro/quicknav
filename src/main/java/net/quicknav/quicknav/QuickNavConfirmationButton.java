@@ -32,6 +32,7 @@ public class QuickNavConfirmationButton extends QuickNavButton {
 	public void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		super.extractWidgetRenderState(graphics, mouseX, mouseY, a);
 		if (toggled()) return;
+		if (isDungeonDisabled()) return; // Keep the dungeon disabled tooltip intact
 		if (isDoubleClick() == showingConfirmTooltip) return;
 		showingConfirmTooltip = !showingConfirmTooltip;
 		setTooltip(showingConfirmTooltip ? CONFIRM_TOOLTIP : tooltip);
@@ -39,6 +40,7 @@ public class QuickNavConfirmationButton extends QuickNavButton {
 
 	@Override
 	public void playDownSound(SoundManager soundManager) {
+		if (isDungeonDisabled()) return;
 		if (isDoubleClick()) {
 			super.playDownSound(soundManager);
 			return;

@@ -6,8 +6,6 @@
   "quicknav.config.quickNav.button.chooseSkyblockItem": "Choose SkyBlock Item",
   "quicknav.config.quickNav.button.chooseSkyblockItem.@Tooltip": "Select a SkyBlock icon or item to fill this button with.",
   "quicknav.config.quickNav.button.clickEvent": "Click Event",
-  "quicknav.config.quickNav.button.disableInDungeon": "Disable in Dungeons",
-  "quicknav.config.quickNav.button.disableInDungeon.@Tooltip": "Prevents this button from being clicked while inside a dungeon, so you can't accidentally warp out of the current dungeon instance.",
   "quicknav.config.quickNav.button.doubleClick": "Require Double Click",
   "quicknav.config.quickNav.button.item.components": "Item Components",
   "quicknav.config.quickNav.button.item.components.@Tooltip": "A string of item components enclosed in square brackets, which is the same format as the /give command.\n\nExample: [minecraft:enchantment_glint_override=true]",
@@ -17,12 +15,9 @@
   "quicknav.config.quickNav.button.tooltip": "Tooltip",
   "quicknav.config.quickNav.button.tooltip.@Tooltip": "Tooltip shown when hovering your mouse over the button.\n\nYou can use text json format.\nPutting nothing will make the tooltip not render.",
   "quicknav.config.quickNav.button.uiTitle": "UI Title",
-  "quicknav.config.quickNav.disableWarpButtonsInDungeon": "Disable /warp Buttons in Dungeons",
-  "quicknav.config.quickNav.disableWarpButtonsInDungeon.@Tooltip": "Prevents accidentally warping out of a dungeon by disabling every button that runs a /warp command while you're inside a dungeon.",
   "quicknav.config.quickNav.enableQuickNav": "Enable Quick Navigation",
   "quicknav.config.quickNav.enableQuickNav.@Tooltip": "Adds 14 customizable inventory buttons that can be styled and run a command when clicked.",
 
   "quicknav.open": "Open",
-  "quicknav.quickNav.confirm": "Click again to confirm.",
-  "quicknav.quickNav.disabledInDungeon": "This button is disabled while in a dungeon."
+  "quicknav.quickNav.confirm": "Click again to confirm."
 }

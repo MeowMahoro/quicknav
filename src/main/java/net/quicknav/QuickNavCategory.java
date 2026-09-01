@@ -30,6 +30,16 @@ public class QuickNavCategory {
 						.controller(QuickNavConfigUtils.createBooleanController())
 						.build())
 
+				//Dungeon mis-click protection
+				.option(Option.<Boolean>createBuilder()
+						.name(Component.translatable("quicknav.config.quickNav.disableWarpButtonsInDungeon"))
+						.description(Component.translatable("quicknav.config.quickNav.disableWarpButtonsInDungeon.@Tooltip"))
+						.binding(defaults.disableWarpButtonsInDungeon,
+								() -> config.disableWarpButtonsInDungeon,
+								newValue -> config.disableWarpButtonsInDungeon = newValue)
+						.controller(QuickNavConfigUtils.createBooleanController())
+						.build())
+
 				//Buttons
 				.group(quickNavButton(defaults.button1, config.button1, 1))
 				.group(quickNavButton(defaults.button2, config.button2, 2))
@@ -64,6 +74,14 @@ public class QuickNavCategory {
 						.binding(defaultButton.doubleClick,
 								() -> button.doubleClick,
 								newValue -> button.doubleClick = newValue)
+						.controller(QuickNavConfigUtils.createBooleanController())
+						.build())
+				.option(Option.<Boolean>createBuilder()
+						.name(Component.translatable("quicknav.config.quickNav.button.disableInDungeon"))
+						.description(Component.translatable("quicknav.config.quickNav.button.disableInDungeon.@Tooltip"))
+						.binding(defaultButton.disableInDungeon,
+								() -> button.disableInDungeon,
+								newValue -> button.disableInDungeon = newValue)
 						.controller(QuickNavConfigUtils.createBooleanController())
 						.build())
 				.optionIf(Minecraft.getInstance().level != null, ButtonOption.createBuilder()

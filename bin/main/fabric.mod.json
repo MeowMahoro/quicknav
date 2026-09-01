@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "quicknav",
+  "version": "${version}",
+  "name": "Quick Nav",
+  "description": "Adds customizable navigation buttons to Hypixel SkyBlock menus. Standalone port of the Quick Navigation module from Skyblocker.",
+  "authors": [
+    "SkyblockerMod (original)"
+  ],
+  "contact": {
+    "sources": "https://github.com/MeowMahoro/quicknav"
+  },
+  "license": "LGPL-3.0-or-later",
+  "icon": "assets/quicknav/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.quicknav.QuickNavMod"
+    ],
+    "modmenu": [
+      "net.quicknav.compat.ModMenuEntry"
+    ],
+    "catharsis:imc/hidden_mod_elements": [
+      "net.quicknav.QuickNavCompat::hiddenGuiElements"
+    ]
+  },
+  "mixins": [
+    "quicknav.mixins.json"
+  ],
+  "accessWidener": "quicknav.classtweaker",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": ">=0.152.1+26.2",
+    "yet_another_config_lib_v3": ">=3.9.4+26.2",
+    "fabric-language-kotlin": "*",
+    "minecraft": "~26.2",
+    "java": ">=25"
+  }
+}

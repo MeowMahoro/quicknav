@@ -1,0 +1,4 @@
+classTweaker v2 official
+
+# Quick Nav
+accessible	method	net/minecraft/client/gui/screens/Screen	addWidget	(Lnet/minecraft/client/gui/components/events/GuiEventListener;)Lnet/minecraft/client/gui/components/events/GuiEventListener;

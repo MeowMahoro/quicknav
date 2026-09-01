@@ -18,15 +18,22 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 import java.time.Duration;
+import java.util.Locale;
 
+import net.quicknav.QuickNavConfig;
+import net.quicknav.QuickNavConfigManager;
 import net.quicknav.QuickNavConstants;
 import net.quicknav.QuickNavMod;
+import net.quicknav.QuickNavUtils;
 import net.quicknav.gui.AbstractPopupScreen;
 import net.quicknav.mixins.accessors.AbstractContainerScreenAccessor;
 import net.quicknav.mixins.accessors.PopupScreenAccessor;
@@ -43,6 +50,8 @@ public class QuickNavButton extends AbstractWidget {
 	@SuppressWarnings("unchecked")
 	private static final @Nullable FallbackedTexture<Identifier>[] TAB_TEXTURES_SELECTED = new FallbackedTexture[14];
 
+	private static final Tooltip DUNGEON_DISABLED_TOOLTIP = Tooltip.create(Component.translatable("quicknav.quickNav.disabledInDungeon"));
+
 	private final int index;
 	private final boolean toggled;
 	private final String command;
@@ -51,6 +60,7 @@ public class QuickNavButton extends AbstractWidget {
 
 	private boolean temporaryToggled = false;
 	private long toggleTime;
+	private boolean showingDungeonDisabledTooltip = false;
 
 	// Stores whether the button is currently rendering in front of the main inventory background.
 	private boolean renderInFront;
@@ -139,6 +149,15 @@ public class QuickNavButton extends AbstractWidget {
 	 */
 	@Override
 	public void onClick(MouseButtonEvent click, boolean doubled) {
+		if (isDungeonDisabled()) {
+			// Prevent accidentally warping out of the current dungeon instance.
+			Minecraft client = Minecraft.getInstance();
+			client.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BASS, 1.0f));
+			if (client.player != null) {
+				client.player.sendSystemMessage(QuickNavConstants.PREFIX.get().append(Component.translatable("quicknav.quickNav.disabledInDungeon").withStyle(ChatFormatting.RED)));
+			}
+			return;
+		}
 		if (!this.temporaryToggled) {
 			this.temporaryToggled = true;
 			this.toggleTime = System.currentTimeMillis();
@@ -149,6 +168,35 @@ public class QuickNavButton extends AbstractWidget {
 			}
 			this.alpha = 0;
 		}
+	}
+
+	/**
+	 * Suppresses the normal click sound for buttons disabled inside dungeons, since the warning
+	 * sound is already played in {@link #onClick(MouseButtonEvent, boolean)}.
+	 */
+	@Override
+	public void playDownSound(SoundManager soundManager) {
+		if (isDungeonDisabled()) return;
+		super.playDownSound(soundManager);
+	}
+
+	/**
+	 * Checks whether this button should be disabled while the player is inside a dungeon.
+	 * <p>
+	 * A button is disabled if the player is in a dungeon and either the "disable warp buttons"
+	 * mode is enabled (the button's command starts with {@code /warp}) or the button has been
+	 * manually set to be disabled in dungeons in the config.
+	 *
+	 * @return whether this button is currently disabled inside a dungeon
+	 */
+	public boolean isDungeonDisabled() {
+		QuickNavConfig config = QuickNavConfigManager.get();
+		if (!QuickNavUtils.isInDungeon()) return false;
+
+		String cmd = command == null ? "" : command.trim().toLowerCase(Locale.ROOT);
+		if (config.disableWarpButtonsInDungeon && (cmd.equals("/warp") || cmd.startsWith("/warp "))) return true;
+
+		return config.getButton(index).disableInDungeon;
 	}
 
 	/**
@@ -184,15 +232,32 @@ public class QuickNavButton extends AbstractWidget {
 			alpha = Math.min(alpha + 10, 255);
 		}
 
+		boolean dungeonDisabled = isDungeonDisabled();
+		updateDungeonDisabledTooltip(dungeonDisabled);
+
 		Identifier tabTexture = getTexture();
 
 		// Render the button texture, always with full alpha if it's not rendering in front
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, tabTexture, this.getX(), this.getY(), this.width, this.height, renderInFront ? ARGB.color(alpha, -1) : -1);
+		if (dungeonDisabled) {
+			// Render with a red tint to signal that the button is disabled inside dungeons
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, tabTexture, this.getX(), this.getY(), this.width, this.height, ARGB.color(alpha, 0xFF5555));
+		} else {
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, tabTexture, this.getX(), this.getY(), this.width, this.height, renderInFront ? ARGB.color(alpha, -1) : -1);
+		}
 		// Render the button icon
 		int yOffset = this.index < 7 ? 1 : -1;
 		graphics.item(this.icon, this.getX() + 5, this.getY() + 8 + yOffset);
 
 		this.handleCursor(graphics);
+	}
+
+	/**
+	 * Switches the tooltip to the dungeon disabled warning while the button is disabled inside a dungeon.
+	 */
+	private void updateDungeonDisabledTooltip(boolean dungeonDisabled) {
+		if (dungeonDisabled == showingDungeonDisabledTooltip) return;
+		showingDungeonDisabledTooltip = dungeonDisabled;
+		setTooltip(dungeonDisabled ? DUNGEON_DISABLED_TOOLTIP : tooltip);
 	}
 
 	private Identifier getTexture() {

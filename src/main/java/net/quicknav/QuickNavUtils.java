@@ -10,6 +10,8 @@ import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.scores.DisplaySlot;
 import net.minecraft.world.scores.Objective;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.world.scores.Scoreboard;
 
 /**
@@ -21,9 +23,14 @@ import net.minecraft.world.scores.Scoreboard;
  */
 public final class QuickNavUtils {
 	private static final String HYPIXEL_SKYBLOCK_NAMESPACE = "hypixel_skyblock";
+	/**
+	 * The scoreboard area name shown while inside a Catacombs dungeon instance.
+	 */
+	private static final String DUNGEON_AREA_NAME = "The Catacombs";
 	private static final HolderLookup.Provider LOOKUP = VanillaRegistries.createLookup();
 
 	private static boolean isOnSkyblock = false;
+	private static boolean isInDungeon = false;
 
 	private QuickNavUtils() {}
 
@@ -32,22 +39,54 @@ public final class QuickNavUtils {
 	}
 
 	/**
-	 * Updates the {@link #isOnSkyblock} flag. Called every client tick.
+	 * @return whether the player is currently inside a Catacombs dungeon instance
+	 */
+	public static boolean isInDungeon() {
+		return isInDungeon;
+	}
+
+	/**
+	 * Updates the {@link #isOnSkyblock} and {@link #isInDungeon} flags. Called every client tick.
 	 */
 	public static void update() {
 		Minecraft client = Minecraft.getInstance();
 
 		if (client.level == null || client.player == null) {
 			isOnSkyblock = false;
+			isInDungeon = false;
 			return;
 		}
 
 		if (FabricLoader.getInstance().isDevelopmentEnvironment()) { // Pretend we're always in skyblock when in dev
 			isOnSkyblock = true;
+			isInDungeon = false;
 			return;
 		}
 
 		isOnSkyblock = isConnectedToHypixel(client) && hasSkyblockSidebar(client);
+		isInDungeon = isOnSkyblock && hasDungeonScoreboard(client);
+	}
+
+	/**
+	 * Checks the sidebar scoreboard for the Catacombs dungeon area name. Hypixel displays
+	 * "The Catacombs" as the area line while inside a dungeon instance (as opposed to the
+	 * "Dungeon Hub" shown outside of one).
+	 */
+	private static boolean hasDungeonScoreboard(Minecraft client) {
+		Scoreboard scoreboard = client.level.getScoreboard();
+		Objective objective = scoreboard.getDisplayObjective(DisplaySlot.BY_ID.apply(1));
+		if (objective == null) return false;
+
+		for (ScoreHolder scoreHolder : scoreboard.getTrackedPlayers()) {
+			if (!scoreboard.listPlayerScores(scoreHolder).containsKey(objective)) continue;
+			PlayerTeam team = scoreboard.getPlayersTeam(scoreHolder.getScoreboardName());
+			if (team == null) continue;
+
+			String line = team.getPlayerPrefix().getString() + team.getPlayerSuffix().getString();
+			String stripped = ChatFormatting.stripFormatting(line);
+			if (stripped != null && stripped.contains(DUNGEON_AREA_NAME)) return true;
+		}
+		return false;
 	}
 
 	private static boolean isConnectedToHypixel(Minecraft client) {

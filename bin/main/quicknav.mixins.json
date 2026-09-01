@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "net.quicknav.mixins",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"QuickNavMixin",
+		"QuickNavScreenMixin",
+		"accessors.AbstractContainerScreenAccessor",
+		"accessors.PopupScreenAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
