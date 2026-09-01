@@ -1,0 +1,105 @@
+plugins {
+	// Building
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = "${project.mod_version}+${project.minecraft_version}"
+group = project.maven_group
+
+repositories {
+	// Add repositories to retrieve artifacts from in here.
+	// You should only use this when depending on other mods because
+	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+	maven {
+		url = "https://maven.azureaaron.net/releases"
+
+		content {
+			includeGroup "net.azureaaron"
+		}
+	}
+
+	// For YACL (transitive dependency of Dandelion)
+	maven {
+		url = "https://maven.isxander.dev/releases"
+
+		content {
+			includeGroup "dev.isxander"
+			includeGroup "org.quiltmc.parsers"
+		}
+	}
+
+	// For Mod Menu
+	exclusiveContent {
+		forRepository {
+			maven { url = "https://api.modrinth.com/maven" }
+		}
+
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric API
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Dandelion config framework - bundled into the mod jar (jar-in-jar).
+	// Dandelion is only distributed on the private maven.azureaaron.net repo and has no
+	// public release, so it is embedded here to make the mod standalone.
+	// NOTE: include is NOT transitive, so YACL (Dandelion's config screen backend) is not
+	// bundled - it must be installed separately (available on Modrinth).
+	implementation "net.azureaaron:dandelion:${project.dandelion_version}"
+	include "net.azureaaron:dandelion:${project.dandelion_version}"
+
+	// Fabric Language Kotlin - required by Dandelion at runtime (installed separately)
+	implementation "net.fabricmc:fabric-language-kotlin:${project.flk_version}"
+
+	// Mod Menu (optional, to open the config screen from the mod list)
+	implementation "maven.modrinth:modmenu:${project.mod_menu_version}"
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/quicknav.classtweaker")
+
+	runs {
+		configureEach {
+			preferGradleTask = true
+		}
+	}
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+tasks.withType(ProcessResources).configureEach {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	def archivesName = project.base.archivesName
+	inputs.property "archivesName", archivesName.get()
+
+	from("LICENSE") {
+		rename { "${it}_${archivesName.get()}" }
+	}
+}
