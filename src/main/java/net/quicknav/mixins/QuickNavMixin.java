@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.quicknav.QuickNavCompat;
 import net.quicknav.QuickNavConfigManager;
+import net.quicknav.QuickNavStoragePages;
 import net.quicknav.QuickNavUtils;
 import net.quicknav.quicknav.QuickNav;
 import net.quicknav.quicknav.QuickNavButton;
@@ -26,7 +27,7 @@ public abstract class QuickNavMixin extends QuickNavScreenMixin {
 	@Inject(method = "init()V", at = @At(value = "TAIL"))
 	protected void quicknav$initQuickNav(CallbackInfo ci) {
 		Screen instance = (Screen) (Object) this;
-		if (QuickNavUtils.isOnSkyblock() && QuickNavConfigManager.get().enableQuickNav && Minecraft.getInstance().player != null && !Minecraft.getInstance().player.isCreative() && !QuickNavCompat.isGuiElementHidden("quicknav:quickNavigation")) {
+		if (QuickNavUtils.isOnSkyblock() && QuickNavConfigManager.get().enableQuickNav && Minecraft.getInstance().player != null && !Minecraft.getInstance().player.isCreative() && !QuickNavCompat.isGuiElementHidden("quicknav:quickNavigation") && !QuickNavStoragePages.isStoragePage(instance.getTitle())) {
 			for (QuickNavButton quickNavButton : this.quickNavButtons = QuickNav.init(instance.getTitle().getString().trim())) {
 				instance.addWidget(quickNavButton);
 			}
