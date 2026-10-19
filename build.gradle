@@ -104,6 +104,10 @@ jar {
 	def archivesName = project.base.archivesName
 	inputs.property "archivesName", archivesName.get()
 
+	// Distributable name uses a dash instead of the "+" build metadata separator,
+	// e.g. quicknav-1.1.1-26.1.2.jar.
+	archiveFileName = "${archivesName.get()}-${project.version.toString().replace('+', '-')}.jar"
+
 	from("LICENSE") {
 		rename { "${it}_${archivesName.get()}" }
 	}
