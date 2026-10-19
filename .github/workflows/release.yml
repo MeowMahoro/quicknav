@@ -87,5 +87,6 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/quicknav-*/*.jar
+          # Artifacts are downloaded with merge-multiple, so all jars land directly in dist/.
+          files: dist/*.jar
           body_path: CHANGELOG.md
