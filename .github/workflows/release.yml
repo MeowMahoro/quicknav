@@ -9,13 +9,19 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build:
+    name: Build ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [ "26.1.2", "26.2", "26.3" ]
+
     steps:
-      - name: Checkout repository
+      - name: Checkout ${{ matrix.branch }}
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ matrix.branch }}
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4
@@ -26,14 +32,57 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon
 
-      - name: Generate Changelog
-        id: changelog
+      - name: Collect artifacts
+        run: |
+          target="release/quicknav-${{ matrix.branch }}"
+          mkdir -p "$target"
+          cp build/libs/*.jar "$target/"
+
+          {
+            echo "branch: ${{ matrix.branch }}"
+            echo "commit: $(git rev-parse HEAD)"
+            echo "release-tag: ${{ github.ref_name }}"
+            echo "built-at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "$target/BUILD_INFO.txt"
+
+          ls -l "$target"
+
+      - name: Upload per-version artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-quicknav-${{ matrix.branch }}
+          path: release/quicknav-${{ matrix.branch }}
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download per-version artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create combined archive
+        run: |
+          ls -R dist
+          cd dist
+          zip -r ../quicknav-all-versions.zip .
+
+      - name: Generate changelog
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
@@ -41,9 +90,20 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
 
-      - name: Publish Release
+      - name: Append bundled versions note
+        run: |
+          {
+            echo ""
+            echo "### 包含版本"
+            echo ""
+            echo "本次 release 附带 26.1.2、26.2、26.3 三个分支的最新构建，"
+            echo "每个版本的提交信息见压缩包内对应的 BUILD_INFO.txt。"
+          } >> CHANGELOG.md
+
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/libs/*.jar
+            dist/quicknav-*/*.jar
+            quicknav-all-versions.zip
           body_path: CHANGELOG.md
