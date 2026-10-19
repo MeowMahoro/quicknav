@@ -66,28 +66,3 @@ jobs:
           name: quicknav-${{ matrix.branch }}
           path: dist/quicknav-${{ matrix.branch }}
           if-no-files-found: error
-
-  package:
-    name: Package all versions
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download per-version artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
-
-      - name: Create single archive
-        run: |
-          ls -R dist
-          cd dist
-          zip -r ../quicknav-all-versions.zip .
-
-      - name: Upload combined archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: quicknav-all-versions
-          path: quicknav-all-versions.zip
-          if-no-files-found: error
