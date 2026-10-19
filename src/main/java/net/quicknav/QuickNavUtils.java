@@ -27,7 +27,7 @@ public final class QuickNavUtils {
 	 * The scoreboard area name shown while inside a Catacombs dungeon instance.
 	 */
 	private static final String DUNGEON_AREA_NAME = "The Catacombs";
-	private static final HolderLookup.Provider LOOKUP = VanillaRegistries.createLookup();
+	private static final HolderLookup.Provider LOOKUP = VanillaRegistries.createWorldLookup();
 
 	private static boolean isOnSkyblock = false;
 	private static boolean isInDungeon = false;

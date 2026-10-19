@@ -7,6 +7,7 @@ import static net.azureaaron.legacyitemdfu.LegacyItemStackFixer.getLatestVersion
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 
@@ -19,7 +20,6 @@ import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -67,26 +67,31 @@ public class ItemStackComponentizationFixer {
 	}
 
 	/**
-	 * Modified version of {@link net.minecraft.commands.arguments.item.ItemInput#serialize(net.minecraft.core.HolderLookup.Provider)} to only care about changed components.
+	 * Modified version of vanilla's item component serialization to only care about changed components.
 	 *
 	 * @return The components as a string in the format that the {@code /give} command accepts.
 	 */
 	public static String componentsAsString(DataComponentPatch components) {
 		RegistryOps<Tag> nbtRegistryOps = QuickNavUtils.getRegistryWrapperLookup().createSerializationContext(NbtOps.INSTANCE);
+		DataComponentPatch.SplitResult split = components.split();
 
-		return Arrays.toString(components.entrySet().stream().map(entry -> {
-			DataComponentType<?> componentType = entry.getKey();
+		Stream<String> added = split.added().stream().map(component -> {
+			DataComponentType<?> componentType = component.type();
 			Identifier componentId = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(componentType);
 			if (componentId == null) return null;
 
-			Optional<?> component = entry.getValue();
-			if (component.isEmpty()) return "!" + componentId;
-
-			Optional<Tag> encodedComponent = TypedDataComponent.createUnchecked(componentType, component.get()).encodeValue(nbtRegistryOps).result();
+			Optional<Tag> encodedComponent = component.encodeValue(nbtRegistryOps).result();
 
 			if (encodedComponent.isEmpty()) return null;
 			return componentId + "=" + encodedComponent.orElseThrow();
-		}).filter(Objects::nonNull).toArray());
+		});
+
+		Stream<String> removed = split.removed().stream().map(componentType -> {
+			Identifier componentId = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(componentType);
+			return componentId == null ? null : "!" + componentId;
+		});
+
+		return Arrays.toString(Stream.concat(added, removed).filter(Objects::nonNull).toArray());
 	}
 
 	public static ItemStack fromItemString(String itemString, int count) {
