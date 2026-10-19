@@ -2,9 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main", "master", "26.1.2", "26.2", "26.3" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
