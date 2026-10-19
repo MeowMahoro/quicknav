@@ -10,6 +10,16 @@ repositories {
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+	// Local 26.3 build of Dandelion - see libs/local-maven/README.md.
+	maven {
+		name = "QuickNavLocal"
+		url = uri("libs/local-maven")
+
+		content {
+			includeGroup "net.azureaaron"
+		}
+	}
+
 	maven {
 		url = "https://maven.azureaaron.net/releases"
 
@@ -40,15 +50,6 @@ repositories {
 	}
 }
 
-configurations {
-	// Resolves the upstream Dandelion artifact so it can be patched before being used.
-	dandelionSource {
-		canBeConsumed = false
-		canBeResolved = true
-		transitive = false
-	}
-}
-
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -58,15 +59,11 @@ dependencies {
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Dandelion config framework - bundled into the mod jar (jar-in-jar).
-	// Dandelion is only distributed on the private maven.azureaaron.net repo and has no
-	// public release, so it is embedded here to make the mod standalone.
-	// The published alpha.22 build only declares Minecraft ~26.2, so the version check is
-	// relaxed in both the dev runtime (patched jar, see :patchDandelion) and the bundled copy
-	// (see the jar task below). Compilation itself only needs the upstream classes.
+	// The local 26.3 build lives in libs/local-maven (see its README for source and patches);
+	// it uses the official MoulConfig modern-26.3 build.
 	// NOTE: include is NOT transitive, so YACL (Dandelion's config screen backend) is not
 	// bundled - it must be installed separately (available on Modrinth).
-	dandelionSource "net.azureaaron:dandelion:${project.dandelion_version}"
-	compileOnly "net.azureaaron:dandelion:${project.dandelion_version}"
+	implementation "net.azureaaron:dandelion:${project.dandelion_version}"
 	include "net.azureaaron:dandelion:${project.dandelion_version}"
 
 	// Legacy Item DFU - converts legacy Hypixel/NEU item NBT (pre-flattening item IDs,
@@ -126,97 +123,4 @@ jar {
 	}
 }
 
-// Dandelion alpha.22 is the latest published build and its fabric.mod.json still declares
-// "minecraft": "~26.2". The library itself does not use any 26.3-breaking API, but Fabric
-// Loader would reject it on 26.3 (in the dev runtime as well as in the bundled copy), so a
-// patched jar is produced once and used by both classpaths.
-def patchDandelion = tasks.register("patchDandelion") {
-	group = "build"
-	description = "Relaxes the Minecraft version declared by the Dandelion alpha.22 build"
 
-	def sourceConfiguration = configurations.dandelionSource
-	def outputFile = layout.buildDirectory.file("patched/dandelion-${project.dandelion_version}.jar")
-
-	inputs.files(sourceConfiguration)
-	outputs.file(outputFile)
-
-	doLast {
-		def jar = sourceConfiguration.resolvedConfiguration.resolvedArtifacts.find { it.name == "dandelion" }.file
-		def output = outputFile.get().asFile
-		output.parentFile.mkdirs()
-		output.bytes = patchBundledDandelion(jar.bytes)
-	}
-}
-
-dependencies {
-	// Only the patched Dandelion goes on the development runtime classpath, otherwise Fabric
-	// Loader would reject the unpatched upstream copy for requiring Minecraft ~26.2.
-	runtimeOnly files(patchDandelion)
-}
-
-// Loom refuses to nest a file dependency, so the upstream jar is bundled through `include`
-// and its metadata is relaxed inside the final jar after Loom has assembled it.
-tasks.named('jar') {
-	doLast {
-		def output = archiveFile.get().asFile
-		def input = new java.util.zip.ZipFile(output)
-		def temp = new File(output.parentFile, output.name + ".tmp")
-
-		new java.util.zip.ZipOutputStream(new java.io.FileOutputStream(temp)).withCloseable { out ->
-			input.entries().each { entry ->
-				out.putNextEntry(new java.util.zip.ZipEntry(entry.name))
-
-				if (entry.name.startsWith("META-INF/jars/dandelion-") && entry.name.endsWith(".jar")) {
-					out.write(patchBundledDandelion(input.getInputStream(entry).bytes))
-				} else {
-					out.write(input.getInputStream(entry).bytes)
-				}
-
-				out.closeEntry()
-			}
-		}
-
-		input.close()
-		output.delete()
-
-		if (!temp.renameTo(output)) {
-			throw new GradleException("Failed to replace bundled Dandelion metadata in ${output}")
-		}
-	}
-}
-
-def patchBundledDandelion(byte[] jarBytes) {
-	def source = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(jarBytes))
-	def result = new java.io.ByteArrayOutputStream()
-	// Dandelion ships a shaded jar that happens to contain the same entries more than once
-	// (its own metadata plus entries from bundled libraries). ZipOutputStream rejects
-	// duplicates, so only the first occurrence of each entry is kept.
-	def seen = new HashSet<String>()
-
-	new java.util.zip.ZipOutputStream(result).withCloseable { out ->
-		def entry
-
-		while ((entry = source.nextEntry) != null) {
-			def bytes = source.readAllBytes()
-
-			if (seen.add(entry.name)) {
-				if (entry.name == "fabric.mod.json") {
-					def text = new String(bytes, "UTF-8")
-
-					if (text.contains('"id": "dandelion"')) {
-						bytes = text.replace('"minecraft": "~26.2"', '"minecraft": "~26.3"').getBytes("UTF-8")
-					}
-				}
-
-				out.putNextEntry(new java.util.zip.ZipEntry(entry.name))
-				out.write(bytes)
-				out.closeEntry()
-			}
-
-			source.closeEntry()
-		}
-	}
-
-	source.close()
-	return result.toByteArray()
-}

@@ -1,0 +1,5 @@
+# Patch files must keep LF so they apply cleanly to upstream repositories.
+*.patch text eol=lf
+
+# Binary artifacts
+*.jar binary

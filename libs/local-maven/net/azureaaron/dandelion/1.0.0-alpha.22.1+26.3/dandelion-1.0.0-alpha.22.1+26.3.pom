@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.azureaaron</groupId>
+	<artifactId>dandelion</artifactId>
+	<version>1.0.0-alpha.22.1+26.3</version>
+	<packaging>jar</packaging>
+
+	<name>Dandelion (QuickNav 26.3 build)</name>
+	<description>Local compatibility build of Dandelion alpha.22 for Minecraft 26.3.</description>
+	<url>https://github.com/AzureAaron/Dandelion</url>
+
+	<licenses>
+		<license>
+			<name>LGPL-3.0-or-later</name>
+			<url>https://www.gnu.org/licenses/lgpl-3.0.html</url>
+		</license>
+	</licenses>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.fabricmc</groupId>
+			<artifactId>fabric-loader</artifactId>
+			<version>0.20.0</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.fabricmc.fabric-api</groupId>
+			<artifactId>fabric-api</artifactId>
+			<version>0.163.0+26.3</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>dev.isxander</groupId>
+			<artifactId>yet-another-config-lib</artifactId>
+			<version>3.9.7+26.3-fabric</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.fabricmc</groupId>
+			<artifactId>fabric-language-kotlin</artifactId>
+			<version>1.14.2+kotlin.2.4.21</version>
+			<scope>runtime</scope>
+		</dependency>
+	</dependencies>
+</project>

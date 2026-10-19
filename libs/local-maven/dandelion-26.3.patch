@@ -1,0 +1,151 @@
+diff --git a/gradle.properties b/gradle.properties
+index 3066bdf..941b723 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -5,9 +5,9 @@ org.gradle.configuration-cache=true
+ 
+ # Fabric Properties
+ # check these on https://fabricmc.net/develop
+-minecraft_version=26.2
+-loader_version=0.19.3
+-loom_version=1.17-SNAPSHOT
++minecraft_version=26.3
++loader_version=0.20.0
++loom_version=1.19-SNAPSHOT
+ 
+ # Mod Properties
+ mod_version=1.0.0-alpha.22
+@@ -15,12 +15,12 @@ maven_group=net.azureaaron.dandelion
+ archives_base_name=dandelion
+ 
+ # Dependencies
+-fabric_version=0.152.1+26.2
+-yacl_version=3.9.4+26.2
+-moulconfig_flavour=modern-26.2
+-moulconfig_version=4.7.2
++fabric_version=0.163.0+26.3
++yacl_version=3.9.7+26.3
++moulconfig_flavour=modern-26.3
++moulconfig_version=4.8.0
+ #moulconfig_version=9999.9999.9999
+-flk_version=1.13.12+kotlin.2.4.0
++flk_version=1.14.2+kotlin.2.4.21
+ 
+ # Miscellaneous
+ shadow_version=9.4.2
+diff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties
+index df6a6ad..9b7cb4a 100644
+--- a/gradle/wrapper/gradle-wrapper.properties
++++ b/gradle/wrapper/gradle-wrapper.properties
+@@ -1,6 +1,6 @@
+ distributionBase=GRADLE_USER_HOME
+ distributionPath=wrapper/dists
+-distributionUrl=https\://services.gradle.org/distributions/gradle-9.5.1-bin.zip
++distributionUrl=https\://services.gradle.org/distributions/gradle-9.8.0-bin.zip
+ networkTimeout=10000
+ retries=0
+ retryBackOffMs=500
+diff --git a/src/main/java/net/azureaaron/dandelion/impl/moulconfig/DandelionSocialLink.java b/src/main/java/net/azureaaron/dandelion/impl/moulconfig/DandelionSocialLink.java
+index af88674..d9c3fe3 100644
+--- a/src/main/java/net/azureaaron/dandelion/impl/moulconfig/DandelionSocialLink.java
++++ b/src/main/java/net/azureaaron/dandelion/impl/moulconfig/DandelionSocialLink.java
+@@ -7,7 +7,9 @@ import io.github.notenoughupdates.moulconfig.common.MyResourceLocation;
+ import io.github.notenoughupdates.moulconfig.common.text.StructuredText;
+ import io.github.notenoughupdates.moulconfig.platform.MoulConfigPlatform;
+ import net.azureaaron.dandelion.api.PlatformLinks;
+-import net.minecraft.util.Util;
++import com.mojang.blaze3d.Blaze3D;
++
++import java.net.URI;
+ 
+ // Custom class for implementing social links since the built-in one has a bug where clicking on the button
+ // does not open the link in the browser.
+@@ -24,7 +26,7 @@ public class DandelionSocialLink extends Social {
+ 
+ 	@Override
+ 	public void onClick() {
+-		Util.getPlatform().openUri(this.link);
++		Blaze3D.openUri(URI.create(this.link));
+ 	}
+ 
+ 	@Override
+diff --git a/src/main/java/net/azureaaron/dandelion/impl/moulconfig/editor/DandelionKeyMappingEditor.java b/src/main/java/net/azureaaron/dandelion/impl/moulconfig/editor/DandelionKeyMappingEditor.java
+index fc15784..7b3a871 100644
+--- a/src/main/java/net/azureaaron/dandelion/impl/moulconfig/editor/DandelionKeyMappingEditor.java
++++ b/src/main/java/net/azureaaron/dandelion/impl/moulconfig/editor/DandelionKeyMappingEditor.java
+@@ -2,8 +2,6 @@ package net.azureaaron.dandelion.impl.moulconfig.editor;
+ 
+ import java.util.List;
+ 
+-import org.lwjgl.glfw.GLFW;
+-
+ import com.mojang.blaze3d.platform.InputConstants;
+ 
+ import io.github.notenoughupdates.moulconfig.GuiTextures;
+@@ -87,7 +85,7 @@ public class DandelionKeyMappingEditor extends ComponentEditor {
+ 					return true;
+ 				}
+ 
+-				if (click.getMouseState() && click.getMouseButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
++				if (click.getMouseState() && click.getMouseButton() == 0) {
+ 					int height = getHeight();
+ 					int width = getHeight();
+ 					int mouseX = context.getMouseX();
+@@ -123,7 +121,7 @@ public class DandelionKeyMappingEditor extends ComponentEditor {
+ 						keycode = KeyboardConstants.INSTANCE.getNone();
+ 					}
+ 
+-					this.setKey(InputConstants.Type.KEYSYM.getOrCreate(keycode));
++					this.setKey(InputConstants.Type.KEYBOARD.getOrCreate(keycode));
+ 					return true;
+ 				} else {
+ 					return false;
+diff --git a/src/main/java/net/azureaaron/dandelion/impl/yacl/KeyMappingController.java b/src/main/java/net/azureaaron/dandelion/impl/yacl/KeyMappingController.java
+index 550ee37..9ff5d56 100644
+--- a/src/main/java/net/azureaaron/dandelion/impl/yacl/KeyMappingController.java
++++ b/src/main/java/net/azureaaron/dandelion/impl/yacl/KeyMappingController.java
+@@ -62,7 +62,7 @@ public class KeyMappingController implements Controller<InputConstants.Key> {
+ 		@Override
+ 		public boolean keyPressed(KeyEvent event) {
+ 			if (this.awaitingKeyPress) {
+-				this.control.option().requestSet(InputConstants.Type.KEYSYM.getOrCreate(event.key()));
++				this.control.option().requestSet(InputConstants.Type.KEYBOARD.getOrCreate(event.key()));
+ 				this.awaitingKeyPress = false;
+ 				return true;
+ 			}
+diff --git a/src/main/resources/dandelion.classtweaker b/src/main/resources/dandelion.classtweaker
+index fdf3c83..4935bcf 100644
+--- a/src/main/resources/dandelion.classtweaker
++++ b/src/main/resources/dandelion.classtweaker
+@@ -1,11 +1,10 @@
+-classTweaker v1 official
++accessWidener v2 official
+ 
+-# MoulConfig Class Tweakers
+ accessible field net/minecraft/client/gui/GuiGraphicsExtractor scissorStack Lnet/minecraft/client/gui/GuiGraphicsExtractor$ScissorStack;
+ accessible class net/minecraft/client/gui/GuiGraphicsExtractor$ScissorStack
+ accessible field net/minecraft/client/gui/GuiGraphicsExtractor$ScissorStack stack Ljava/util/Deque;
+-accessible method net/minecraft/client/gui/GuiGraphicsExtractor fill (Lcom/mojang/blaze3d/pipeline/RenderPipeline;IIIII)V
+-accessible field net/minecraft/client/renderer/RenderPipelines GUI_SNIPPET Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
++accessible method net/minecraft/client/gui/GuiGraphicsExtractor fill (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;IIIII)V
++accessible field net/minecraft/client/renderer/RenderPipelines GUI_SNIPPET Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Snippet;
+ accessible field net/minecraft/client/gui/GuiGraphicsExtractor guiRenderState Lnet/minecraft/client/renderer/state/gui/GuiRenderState;
+-accessible method net/minecraft/client/gui/GuiGraphicsExtractor innerFill (Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/gui/render/TextureSetup;IIIIILjava/lang/Integer;)V
+-accessible method net/minecraft/client/gui/GuiGraphicsExtractor innerBlit (Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lcom/mojang/blaze3d/textures/GpuTextureView;Lcom/mojang/blaze3d/textures/GpuSampler;IIIIFFFFI)V
++accessible method net/minecraft/client/gui/GuiGraphicsExtractor innerFill (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/client/gui/render/TextureSetup;IIIIILjava/lang/Integer;)V
++accessible method net/minecraft/client/gui/GuiGraphicsExtractor innerBlit (Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lcom/mojang/renderpearl/api/textures/GpuTextureView;Lcom/mojang/renderpearl/api/textures/GpuSampler;IIIIFFFFI)V
+diff --git a/src/main/resources/fabric.mod.json b/src/main/resources/fabric.mod.json
+index fa4aa0b..792265f 100644
+--- a/src/main/resources/fabric.mod.json
++++ b/src/main/resources/fabric.mod.json
+@@ -31,8 +31,8 @@
+ 	],
+ 	"accessWidener": "dandelion.classtweaker",
+ 	"depends": {
+-		"fabricloader": ">=0.19.3",
+-		"minecraft": "~26.2",
++		"fabricloader": ">=0.20.0",
++		"minecraft": "~26.3",
+ 		"java": ">=25",
+ 		"fabric-api": "*",
+ 		"fabric-language-kotlin": "*"
