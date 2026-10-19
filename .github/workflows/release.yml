@@ -76,12 +76,6 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Create combined archive
-        run: |
-          ls -R dist
-          cd dist
-          zip -r ../quicknav-all-versions.zip .
-
       - name: Generate changelog
         uses: orhun/git-cliff-action@v4
         with:
@@ -90,20 +84,8 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
 
-      - name: Append bundled versions note
-        run: |
-          {
-            echo ""
-            echo "### 包含版本"
-            echo ""
-            echo "本次 release 附带 26.1.2、26.2、26.3 三个分支的最新构建，"
-            echo "每个版本的提交信息见压缩包内对应的 BUILD_INFO.txt。"
-          } >> CHANGELOG.md
-
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/quicknav-*/*.jar
-            quicknav-all-versions.zip
+          files: dist/quicknav-*/*.jar
           body_path: CHANGELOG.md
