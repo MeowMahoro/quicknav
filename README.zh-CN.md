@@ -6,7 +6,7 @@
 
 > **AI 说明**：本独立移植版由 AI 辅助制作与适配，源码来自 [Skyblocker](https://github.com/SkyblockerMod/Skyblocker)。
 
-独立的 **快速导航（Quick Navigation）** Fabric 模组 —— 从 [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) 拆分而来，可单独装载于 Minecraft **26.2** 的 Fabric 环境，不依赖 Skyblocker 本体。
+独立的 **快速导航（Quick Navigation）** Fabric 模组 —— 从 [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) 拆分而来，可单独装载于 Minecraft **26.1.2** 的 Fabric 环境，不依赖 Skyblocker 本体。
 
 在 Hypixel SkyBlock 的容器菜单（如快捷栏、背包等）顶部/底部渲染 14 个可自定义的导航标签按钮，点击即可执行命令（`/skills`、`/ah`、`/warp hub` 等）。
 

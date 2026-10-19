@@ -112,7 +112,7 @@ public class Scheduler {
 	 * @param screen the screen to open
 	 */
 	public static int queueOpenScreen(Screen screen) {
-		Minecraft.getInstance().schedule(() -> Minecraft.getInstance().gui.setScreen(screen));
+		Minecraft.getInstance().schedule(() -> Minecraft.getInstance().setScreen(screen));
 		return Command.SINGLE_SUCCESS;
 	}
 

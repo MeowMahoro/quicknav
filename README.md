@@ -6,7 +6,7 @@
 
 > **AI notice**: This standalone port was assembled and adapted with AI assistance; the source code comes from [Skyblocker](https://github.com/SkyblockerMod/Skyblocker).
 
-A standalone **Quick Navigation** Fabric mod — ported from [Skyblocker](https://github.com/SkyblockerMod/Skyblocker), installable on its own in a Minecraft **26.2** Fabric environment without Skyblocker.
+A standalone **Quick Navigation** Fabric mod — ported from [Skyblocker](https://github.com/SkyblockerMod/Skyblocker), installable on its own in a Minecraft **26.1.2** Fabric environment without Skyblocker.
 
 Renders 14 customizable navigation tab buttons at the top/bottom of Hypixel SkyBlock container menus (e.g. hotbar, inventory). Clicking a button executes a command (`/skills`, `/ah`, `/warp hub`, etc.).
 

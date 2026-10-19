@@ -100,7 +100,10 @@ public class ItemStackComponentizationFixer {
 			stack.applyComponents(result.components());
 
 			return stack;
-		} catch (Exception _) {}
+		} catch (Exception e) {
+			// Don't fail silently: an unparseable string means the button icon ends up empty.
+			LOGGER.warn("[QuickNav Item Fixer] Failed to parse item string: {}", itemString, e);
+		}
 
 		return ItemStack.EMPTY;
 	}

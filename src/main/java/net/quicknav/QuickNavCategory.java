@@ -99,7 +99,7 @@ public class QuickNavCategory {
 				.optionIf(Minecraft.getInstance().level != null, ButtonOption.createBuilder()
 						.name(Component.translatable("quicknav.config.quickNav.button.chooseSkyblockItem"))
 						.description(Component.translatable("quicknav.config.quickNav.button.chooseSkyblockItem.@Tooltip"))
-						.action(screen -> Minecraft.getInstance().gui.setScreen(new ItemSelectionPopup(screen, item -> {
+						.action(screen -> Minecraft.getInstance().setScreen(new ItemSelectionPopup(screen, item -> {
 							if (item == null) return;
 							button.itemData.item = item.getItem();
 							button.itemData.components = ItemStackComponentizationFixer.componentsAsString(item);

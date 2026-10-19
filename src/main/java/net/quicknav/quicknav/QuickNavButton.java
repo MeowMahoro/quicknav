@@ -120,7 +120,7 @@ public class QuickNavButton extends AbstractWidget {
 	}
 
 	private void updateCoordinates() {
-		Screen screen = Minecraft.getInstance().gui.screen();
+		Screen screen = Minecraft.getInstance().screen;
 		while (screen instanceof PopupScreen || screen instanceof AbstractPopupScreen) {
 			if (screen instanceof PopupScreen) {
 				if (!(screen instanceof PopupScreenAccessor popup)) {
