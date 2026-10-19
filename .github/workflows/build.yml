@@ -10,12 +10,26 @@ on:
 permissions:
   contents: read
 
+# A push to any version branch rebuilds every version. If several branches are
+# pushed together, keep only the newest run instead of building them in parallel.
+concurrency:
+  group: quicknav-build
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [ "26.1.2", "26.2", "26.3" ]
+
     steps:
-      - name: Checkout repository
+      - name: Checkout ${{ matrix.branch }}
         uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4
@@ -26,16 +40,54 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
       - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon
 
-      - name: Upload build artifacts
+      - name: Collect artifacts
+        run: |
+          target="dist/quicknav-${{ matrix.branch }}"
+          mkdir -p "$target"
+          cp build/libs/*.jar "$target/"
+
+          {
+            echo "branch: ${{ matrix.branch }}"
+            echo "commit: $(git rev-parse HEAD)"
+            echo "built-at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "triggered-by: ${{ github.ref }}"
+          } > "$target/BUILD_INFO.txt"
+
+          ls -l "$target"
+
+      - name: Upload per-version artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: quicknav-jars
-          path: |
-            build/libs/*.jar
+          name: quicknav-${{ matrix.branch }}
+          path: dist/quicknav-${{ matrix.branch }}
+          if-no-files-found: error
+
+  package:
+    name: Package all versions
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download per-version artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create single archive
+        run: |
+          ls -R dist
+          cd dist
+          zip -r ../quicknav-all-versions.zip .
+
+      - name: Upload combined archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: quicknav-all-versions
+          path: quicknav-all-versions.zip
           if-no-files-found: error
